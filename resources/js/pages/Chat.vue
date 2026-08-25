@@ -2,7 +2,7 @@
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
 import { Bot, Plus, Search, Send, User } from '@lucide/vue';
-import { nextTick, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,31 @@ const streamError = ref<string | null>(null);
 
 const messagesContainer = ref<HTMLElement | null>(null);
 
+const STREAM_WATCHDOG_TIMEOUT_MS = 90_000;
+
+let streamWatchdog: ReturnType<typeof setTimeout> | null = null;
+
+function armStreamWatchdog(): void {
+    disarmStreamWatchdog();
+
+    streamWatchdog = setTimeout(() => {
+        if (streaming.value) {
+            failStream(
+                "La réponse n'a pas abouti (le serveur ne répond plus). Réessaie.",
+            );
+        }
+    }, STREAM_WATCHDOG_TIMEOUT_MS);
+}
+
+function disarmStreamWatchdog(): void {
+    if (streamWatchdog !== null) {
+        clearTimeout(streamWatchdog);
+        streamWatchdog = null;
+    }
+}
+
+onBeforeUnmount(disarmStreamWatchdog);
+
 if (typeof window !== 'undefined') {
     useEcho<StreamEvent>(
         `user.${userId}`,
@@ -62,14 +87,20 @@ if (typeof window !== 'undefined') {
         ],
         (payload) => {
             switch (payload.type) {
+                case 'stream_start':
+                    armStreamWatchdog();
+                    break;
                 case 'text_delta':
                     appendDelta(payload.delta ?? '');
+                    armStreamWatchdog();
                     break;
                 case 'tool_call':
                     toolRunning.value = true;
+                    armStreamWatchdog();
                     break;
                 case 'tool_result':
                     toolRunning.value = false;
+                    armStreamWatchdog();
                     break;
                 case 'stream_end':
                     finalizeStream();
@@ -106,6 +137,8 @@ function appendDelta(delta: string): void {
 }
 
 function finalizeStream(): void {
+    disarmStreamWatchdog();
+
     const last = messages.value[messages.value.length - 1];
 
     if (last && last.role === 'assistant' && last.status === 'streaming') {
@@ -119,6 +152,8 @@ function finalizeStream(): void {
 }
 
 function failStream(message: string): void {
+    disarmStreamWatchdog();
+
     const last = messages.value[messages.value.length - 1];
 
     if (last && last.role === 'assistant' && last.status === 'streaming') {
@@ -158,6 +193,7 @@ function send(): void {
     });
 
     streaming.value = true;
+    armStreamWatchdog();
 
     form.post(store().url, {
         preserveScroll: true,
@@ -167,6 +203,7 @@ function send(): void {
         onError: () => {
             messages.value.splice(-2);
             streaming.value = false;
+            disarmStreamWatchdog();
         },
     });
 }
@@ -188,6 +225,7 @@ function newConversation(): void {
         return;
     }
 
+    disarmStreamWatchdog();
     activeConversationId.value = null;
     form.conversation_id = null;
     messages.value = [];
