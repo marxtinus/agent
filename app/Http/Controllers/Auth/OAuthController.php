@@ -4,21 +4,17 @@ namespace App\Http\Controllers\Auth;
 
 use App\Actions\Teams\CreateTeam;
 use App\Http\Controllers\Controller;
-use App\Http\Responses\Concerns\RedirectsToCurrentTeam;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Laravel\Fortify\Fortify;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Symfony\Component\HttpFoundation\Response;
 
 class OAuthController extends Controller
 {
-    use RedirectsToCurrentTeam;
-
     /**
      * The supported socialite providers.
      */
@@ -54,7 +50,7 @@ class OAuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended($this->redirectPathForCurrentTeam($request, Fortify::redirects('login')));
+        return redirect()->intended(route('chat'));
     }
 
     /**

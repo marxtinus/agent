@@ -60,7 +60,7 @@ test('new users are created with a verified email and personal team on first log
         ->and($user->email_verified_at)->not->toBeNull()
         ->and($user->personalTeam()->is_personal)->toBeTrue();
 
-    $response->assertRedirect(route('dashboard', ['current_team' => $user->personalTeam()->slug]));
+    $response->assertRedirect(route('chat'));
 });
 
 test('existing users are linked to the provider when the email matches', function () {
@@ -71,7 +71,7 @@ test('existing users are linked to the provider when the email matches', functio
     Socialite::fake('github', socialiteUser());
 
     $this->get(route('auth.provider.callback', ['provider' => 'github']))
-        ->assertRedirect(route('dashboard', ['current_team' => $user->personalTeam()->slug]));
+        ->assertRedirect(route('chat'));
 
     $this->assertAuthenticatedAs($user);
 
@@ -94,7 +94,7 @@ test('returning social users are authenticated without creating duplicates', fun
     Socialite::fake('github', socialiteUser());
 
     $this->get(route('auth.provider.callback', ['provider' => 'github']))
-        ->assertRedirect(route('dashboard', ['current_team' => $user->personalTeam()->slug]));
+        ->assertRedirect(route('chat'));
 
     $this->assertAuthenticatedAs($user);
 
