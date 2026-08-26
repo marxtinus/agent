@@ -18,8 +18,8 @@ return [
         'key' => env('POSTMARK_API_KEY'),
     ],
 
-    'tavily' => [
-        'key' => env('TAVILY_API_KEY'),
+    'searxng' => [
+        'url' => env('SEARXNG_URL'),
     ],
 
     'resend' => [

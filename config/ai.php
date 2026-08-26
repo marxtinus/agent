@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'tavilyKey' => env('TAVILY_API_KEY'),
+    'searxngUrl' => env('SEARXNG_URL'),
 
     'default' => 'ollama',
     'default_for_images' => 'ollama',

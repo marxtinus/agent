@@ -2,13 +2,14 @@
 
 namespace App\Ai\Agents;
 
-use App\Ai\Tools\TavilySearch;
+use App\Ai\Tools\SearxngSearch;
 use Laravel\Ai\Attributes\MaxSteps;
 use Laravel\Ai\Attributes\Temperature;
 use Laravel\Ai\Concerns\RemembersConversations;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\Conversational;
 use Laravel\Ai\Contracts\HasTools;
+use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Promptable;
 use Stringable;
 
@@ -45,10 +46,10 @@ EOT;
     /**
      * Get the tools available to the agent.
      *
-     * @return array<\Laravel\Ai\Contracts\Tool>
+     * @return array<Tool>
      */
     public function tools(): iterable
     {
-        return [new TavilySearch];
+        return [new SearxngSearch];
     }
 }
