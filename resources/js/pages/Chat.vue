@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
-import { Bot, Plus, Search, Send, User } from '@lucide/vue';
+import { Bot, LogOut, Plus, Search, Send, User } from '@lucide/vue';
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { renderMarkdown } from '@/lib/markdown';
-import { chat } from '@/routes';
+import { chat, logout } from '@/routes';
 import { store } from '@/routes/chat/messages';
 import type { ChatMessage, Conversation, LocalChatMessage } from '@/types';
 
@@ -339,6 +339,19 @@ function formatRelative(date: string): string {
                     Aucune conversation pour le moment.
                 </p>
             </nav>
+
+            <div class="border-t border-zinc-200 p-3 dark:border-zinc-800">
+                <Button
+                    variant="ghost"
+                    class="w-full justify-start gap-2 text-zinc-600 dark:text-zinc-300"
+                    as-child
+                >
+                    <Link :href="logout()">
+                        <LogOut class="size-4" />
+                        Déconnexion
+                    </Link>
+                </Button>
+            </div>
         </aside>
 
         <main class="flex min-w-0 flex-1 flex-col">
