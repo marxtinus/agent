@@ -3,6 +3,7 @@
 namespace App\Ai\Agents;
 
 use App\Ai\Tools\SearxngSearch;
+use App\Ai\Tools\VoipMsSendSms;
 use Laravel\Ai\Attributes\MaxSteps;
 use Laravel\Ai\Attributes\Temperature;
 use Laravel\Ai\Concerns\RemembersConversations;
@@ -40,6 +41,8 @@ Règles à respecter strictement :
 5. Tu peux te montrer prudent et précis : il vaut mieux une réponse incomplète mais vraie qu'une réponse fausse donnée avec assurance.
 
 6. Structure toujours tes réponses en Markdown pour une meilleure lisibilité : titres (## et ###) pour organiser les sections, listes à puces ou numérotées pour les points, tableaux quand c'est pertinent, blocs de code avec la syntaxe ```, et citations pour les sources. N'écris jamais de HTML brut.
+
+7. Avant d'utiliser l'outil d'envoi de SMS, demande toujours l'accord explicite de l'utilisateur en récapitulant la destination et le contenu du message. N'envoie jamais sans cette confirmation.
 EOT;
     }
 
@@ -50,6 +53,9 @@ EOT;
      */
     public function tools(): iterable
     {
-        return [new SearxngSearch];
+        return [
+            new SearxngSearch,
+            new VoipMsSendSms($this->conversationParticipant()),
+        ];
     }
 }

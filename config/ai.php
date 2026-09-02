@@ -15,6 +15,12 @@ return [
 
     'searxngUrl' => env('SEARXNG_URL'),
 
+    'voipms' => [
+        'username' => env('VOIPMS_API_USERNAME'),
+        'password' => env('VOIPMS_API_PASSWORD'),
+        'did' => env('VOIPMS_DID'),
+    ],
+
     'default' => 'ollama',
     'default_for_images' => 'ollama',
     'default_for_audio' => 'ollama',
