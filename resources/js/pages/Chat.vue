@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
-import { Bot, LogOut, Plus, Search, Send, User } from '@lucide/vue';
+import { Bot, LogOut, PanelLeft, Plus, Search, Send, User } from '@lucide/vue';
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import SheetDescription from '@/components/ui/sheet/SheetDescription.vue';
+import SheetHeader from '@/components/ui/sheet/SheetHeader.vue';
+import SheetTitle from '@/components/ui/sheet/SheetTitle.vue';
 import { renderMarkdown } from '@/lib/markdown';
 import { chat, logout } from '@/routes';
 import { store } from '@/routes/chat/messages';
@@ -43,6 +47,7 @@ const activeConversationId = ref<string | null>(props.activeConversationId);
 const streaming = ref(false);
 const toolRunning = ref(false);
 const streamError = ref<string | null>(null);
+const sidebarOpen = ref(false);
 
 const messagesContainer = ref<HTMLElement | null>(null);
 
@@ -213,6 +218,8 @@ function openConversation(id: string): void {
         return;
     }
 
+    sidebarOpen.value = false;
+
     router.get(
         chat({ query: { conversation: id } }).url,
         {},
@@ -225,6 +232,7 @@ function newConversation(): void {
         return;
     }
 
+    sidebarOpen.value = false;
     disarmStreamWatchdog();
     activeConversationId.value = null;
     form.conversation_id = null;
@@ -281,13 +289,101 @@ function formatRelative(date: string): string {
     <div
         class="flex h-dvh overflow-hidden bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100"
     >
+        <Sheet :open="sidebarOpen" @update:open="sidebarOpen = $event">
+            <SheetContent side="left" class="w-72 p-0 [&>button]:hidden">
+                <SheetHeader class="sr-only">
+                    <SheetTitle>Conversations</SheetTitle>
+                    <SheetDescription
+                        >Liste des conversations.</SheetDescription
+                    >
+                </SheetHeader>
+
+                <div class="flex h-full flex-col bg-white dark:bg-zinc-900">
+                    <div
+                        class="flex items-center gap-2 border-b border-zinc-200 px-4 py-4 dark:border-zinc-800"
+                    >
+                        <AppLogoIcon class="size-6 shrink-0" />
+                        <span class="text-lg font-semibold">Marxtinus</span>
+                    </div>
+
+                    <div class="p-3">
+                        <Button
+                            variant="outline"
+                            class="w-full justify-start gap-2"
+                            :disabled="streaming"
+                            @click="newConversation"
+                        >
+                            <Plus class="size-4" />
+                            Nouvelle conversation
+                        </Button>
+                    </div>
+
+                    <nav class="flex-1 overflow-y-auto px-2 pb-3">
+                        <ul class="space-y-1">
+                            <li
+                                v-for="conversation in props.conversations"
+                                :key="conversation.id"
+                            >
+                                <button
+                                    type="button"
+                                    class="w-full rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-zinc-800"
+                                    :class="
+                                        conversation.id === activeConversationId
+                                            ? 'bg-zinc-100 dark:bg-zinc-800'
+                                            : ''
+                                    "
+                                    :disabled="streaming"
+                                    @click="openConversation(conversation.id)"
+                                >
+                                    <span class="block truncate font-medium">
+                                        {{ conversation.title }}
+                                    </span>
+                                    <span
+                                        class="block text-xs text-zinc-500 dark:text-zinc-400"
+                                    >
+                                        {{
+                                            formatRelative(
+                                                conversation.updated_at,
+                                            )
+                                        }}
+                                    </span>
+                                </button>
+                            </li>
+                        </ul>
+
+                        <p
+                            v-if="props.conversations.length === 0"
+                            class="px-3 py-6 text-center text-sm text-zinc-500 dark:text-zinc-400"
+                        >
+                            Aucune conversation pour le moment.
+                        </p>
+                    </nav>
+
+                    <div
+                        class="border-t border-zinc-200 p-3 dark:border-zinc-800"
+                    >
+                        <Button
+                            variant="ghost"
+                            class="w-full justify-start gap-2 text-zinc-600 dark:text-zinc-300"
+                            as-child
+                        >
+                            <Link :href="logout()">
+                                <LogOut class="size-4" />
+                                Déconnexion
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
+            </SheetContent>
+        </Sheet>
+
         <aside
-            class="flex w-72 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+            class="hidden w-72 shrink-0 flex-col border-r border-zinc-200 bg-white md:flex dark:border-zinc-800 dark:bg-zinc-900"
         >
             <div
                 class="flex items-center gap-2 border-b border-zinc-200 px-4 py-4 dark:border-zinc-800"
             >
-                <AppLogoIcon className="size-6 shrink-0" />
+                <AppLogoIcon class="size-6 shrink-0" />
                 <span class="text-lg font-semibold">Marxtinus</span>
             </div>
 
@@ -356,8 +452,18 @@ function formatRelative(date: string): string {
 
         <main class="flex min-w-0 flex-1 flex-col">
             <header
-                class="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900"
+                class="flex items-center gap-2 border-b border-zinc-200 bg-white px-3 py-3 md:px-6 md:py-4 dark:border-zinc-800 dark:bg-zinc-900"
             >
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    class="md:hidden"
+                    aria-label="Ouvrir les conversations"
+                    @click="sidebarOpen = true"
+                >
+                    <PanelLeft class="size-5" />
+                </Button>
+
                 <h1 class="truncate text-sm font-semibold">
                     {{
                         activeConversationId
@@ -372,9 +478,9 @@ function formatRelative(date: string): string {
 
             <div
                 ref="messagesContainer"
-                class="flex-1 overflow-y-auto px-4 py-6"
+                class="flex-1 overflow-y-auto px-3 py-6 md:px-4"
             >
-                <div class="mx-auto w-full max-w-3xl space-y-4">
+                <div class="mx-auto w-full max-w-full space-y-4 md:max-w-3xl">
                     <p
                         v-if="messages.length === 0"
                         class="py-16 text-center text-zinc-500 dark:text-zinc-400"
@@ -407,7 +513,7 @@ function formatRelative(date: string): string {
                         </Avatar>
 
                         <div
-                            class="max-w-[75%] rounded-2xl px-4 py-2 text-sm leading-relaxed"
+                            class="max-w-[85%] rounded-2xl px-4 py-2 text-sm leading-relaxed md:max-w-[75%]"
                             :class="[
                                 message.role === 'user'
                                     ? 'bg-zinc-900 whitespace-pre-wrap text-white dark:bg-zinc-100 dark:text-zinc-900'
@@ -465,13 +571,16 @@ function formatRelative(date: string): string {
             </div>
 
             <div
-                class="border-t border-zinc-200 bg-white px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900"
+                class="border-t border-zinc-200 bg-white px-3 py-3 md:px-4 md:py-4 dark:border-zinc-800 dark:bg-zinc-900"
             >
-                <div class="mx-auto flex w-full max-w-3xl items-end gap-2">
+                <div
+                    class="mx-auto flex w-full max-w-full items-end gap-2 md:max-w-3xl"
+                >
                     <textarea
                         v-model="form.message"
                         rows="1"
-                        class="flex-1 resize-none rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm transition-colors outline-none placeholder:text-zinc-400 focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:placeholder:text-zinc-500 dark:focus:border-zinc-400"
+                        enterkeyhint="send"
+                        class="flex-1 resize-none rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm transition-colors outline-none placeholder:text-zinc-400 focus:border-zinc-500 md:px-4 dark:border-zinc-700 dark:bg-zinc-800 dark:placeholder:text-zinc-500 dark:focus:border-zinc-400"
                         placeholder="Écris un message…"
                         @keydown="handleKeydown"
                     />
@@ -487,7 +596,7 @@ function formatRelative(date: string): string {
 
                 <p
                     v-if="form.errors.message"
-                    class="mx-auto mt-2 max-w-3xl text-sm text-red-600 dark:text-red-400"
+                    class="mx-auto mt-2 max-w-full text-sm text-red-600 md:max-w-3xl dark:text-red-400"
                 >
                     {{ form.errors.message }}
                 </p>
