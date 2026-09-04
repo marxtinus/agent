@@ -32,10 +32,13 @@ import { register } from '@/routes';
                 vous connecter rapidement avec
                 <span class="font-medium text-[#1b1b18] dark:text-[#EDEDEC]"
                     >Google</span
+                >,
+                <span class="font-medium text-[#1b1b18] dark:text-[#EDEDEC]"
+                    >GitHub</span
                 >
                 ou
                 <span class="font-medium text-[#1b1b18] dark:text-[#EDEDEC]"
-                    >GitHub</span
+                    >Yahoo</span
                 >.
             </p>
         </div>
