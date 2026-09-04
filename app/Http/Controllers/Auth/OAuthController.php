@@ -18,7 +18,7 @@ class OAuthController extends Controller
     /**
      * The supported socialite providers.
      */
-    protected const PROVIDERS = ['github', 'google'];
+    protected const PROVIDERS = ['github', 'google', 'yahoo'];
 
     public function __construct(private CreateTeam $createTeam)
     {

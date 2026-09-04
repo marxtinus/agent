@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use App\Services\Socialite\YahooProvider;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -11,6 +12,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Ai\Events\InvokingTool;
 use Laravel\Ai\Events\ToolInvoked;
+use Laravel\Socialite\Facades\Socialite;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +31,18 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureAiLogging();
+        $this->configureSocialite();
+    }
+
+    /**
+     * Register the custom socialite providers.
+     */
+    protected function configureSocialite(): void
+    {
+        Socialite::extend('yahoo', fn () => Socialite::buildProvider(
+            YahooProvider::class,
+            config('services.yahoo'),
+        ));
     }
 
     /**
