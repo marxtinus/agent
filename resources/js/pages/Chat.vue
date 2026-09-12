@@ -51,7 +51,7 @@ const sidebarOpen = ref(false);
 
 const messagesContainer = ref<HTMLElement | null>(null);
 
-const STREAM_WATCHDOG_TIMEOUT_MS = 90_000;
+const STREAM_WATCHDOG_TIMEOUT_MS = 60_000;
 
 let streamWatchdog: ReturnType<typeof setTimeout> | null = null;
 
@@ -147,7 +147,12 @@ function finalizeStream(): void {
     const last = messages.value[messages.value.length - 1];
 
     if (last && last.role === 'assistant' && last.status === 'streaming') {
-        last.status = 'complete';
+        if (!last.content.trim()) {
+            last.status = 'error';
+            streamError.value = "Le bot n'a pas produit de réponse. Réessaie.";
+        } else {
+            last.status = 'complete';
+        }
     }
 
     streaming.value = false;

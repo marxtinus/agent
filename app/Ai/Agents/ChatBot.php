@@ -58,4 +58,12 @@ EOT;
             new VoipMsSendSms($this->conversationParticipant()),
         ];
     }
+
+    /**
+     * Get the maximum number of conversation messages to remember.
+     */
+    protected function maxConversationMessages(): int
+    {
+        return 12;
+    }
 }

@@ -7,7 +7,7 @@ const markdown = new MarkdownIt({
     breaks: true,
 });
 
-if (import.meta.client) {
+if (typeof window !== 'undefined') {
     DOMPurify.addHook('afterSanitizeAttributes', (node) => {
         if (node.tagName === 'A' && node.getAttribute('href')) {
             node.setAttribute('target', '_blank');
@@ -17,5 +17,14 @@ if (import.meta.client) {
 }
 
 export function renderMarkdown(content: string): string {
-    return DOMPurify.sanitize(markdown.render(content));
+    const html = markdown.render(content);
+
+    if (
+        typeof window === 'undefined' ||
+        typeof DOMPurify.sanitize !== 'function'
+    ) {
+        return html;
+    }
+
+    return DOMPurify.sanitize(html);
 }
