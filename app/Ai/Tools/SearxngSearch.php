@@ -5,6 +5,7 @@ namespace App\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
 use Stringable;
@@ -45,7 +46,7 @@ class SearxngSearch implements Tool
             "Title: %s\nURL: %s\nContent: %s",
             $result['title'] ?? 'Untitled',
             $result['url'] ?? '',
-            trim(strip_tags($result['content'] ?? '')),
+            Str::limit(trim(strip_tags($result['content'] ?? '')), 400),
         ));
 
         return "Here are the top 3 web search results:\n\n".$formatted->implode("\n\n");
