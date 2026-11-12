@@ -134,6 +134,16 @@ return [
                 ],
             ],
 
+            'context' => [
+                'window' => (int) env('OLLAMA_CONTEXT_WINDOW', 16384),
+                'safety_margin' => (int) env('OLLAMA_CONTEXT_SAFETY_MARGIN', 512),
+                'max_output_tokens' => (int) env('OLLAMA_MAX_OUTPUT_TOKENS', 1200),
+                'max_steps' => (int) env('OLLAMA_MAX_STEPS', 5),
+                'max_prompt_characters' => (int) env('OLLAMA_MAX_PROMPT_CHARACTERS', 4000),
+                'tool_schema_tokens' => (int) env('OLLAMA_CONTEXT_TOOL_SCHEMA_TOKENS', 500),
+                'max_tool_result_tokens' => (int) env('OLLAMA_CONTEXT_MAX_TOOL_RESULT_TOKENS', 600),
+            ],
+
         ],
 
         'openai' => [

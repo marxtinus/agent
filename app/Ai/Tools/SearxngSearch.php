@@ -13,6 +13,11 @@ use Stringable;
 class SearxngSearch implements Tool
 {
     /**
+     * Maximum number of characters returned to the model.
+     */
+    private const MAX_OUTPUT_CHARACTERS = 1500;
+
+    /**
      * Get the description of the tool's purpose.
      */
     public function description(): string
@@ -49,7 +54,10 @@ class SearxngSearch implements Tool
             Str::limit(trim(strip_tags($result['content'] ?? '')), 400),
         ));
 
-        return "Here are the top 3 web search results:\n\n".$formatted->implode("\n\n");
+        return Str::limit(
+            "Here are the top 3 web search results:\n\n".$formatted->implode("\n\n"),
+            self::MAX_OUTPUT_CHARACTERS,
+        );
     }
 
     /**
