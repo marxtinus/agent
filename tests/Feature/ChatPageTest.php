@@ -1,9 +1,11 @@
 <?php
 
+use App\Ai\Agents\ChatBot;
+use App\Jobs\BroadcastChatMessage;
 use App\Models\User;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
-use Laravel\Ai\Jobs\BroadcastAgent;
 use Laravel\Ai\Models\Conversation;
 use Laravel\Ai\Models\ConversationMessage;
 
@@ -32,16 +34,16 @@ test('the chat page shows the latest conversation by default', function () {
     $user = User::factory()->create();
 
     $conversation = Conversation::create([
-        'id' => (string) \Illuminate\Support\Str::uuid7(),
+        'id' => (string) Str::uuid7(),
         'user_id' => $user->id,
         'title' => 'Ma conversation',
     ]);
 
     ConversationMessage::create([
-        'id' => (string) \Illuminate\Support\Str::uuid7(),
+        'id' => (string) Str::uuid7(),
         'conversation_id' => $conversation->id,
         'user_id' => $user->id,
-        'agent' => \App\Ai\Agents\ChatBot::class,
+        'agent' => ChatBot::class,
         'role' => 'user',
         'content' => 'Bonjour !',
         'attachments' => '[]',
@@ -68,7 +70,7 @@ test('a user cannot open another user conversation', function () {
     $other = User::factory()->create();
 
     $conversation = Conversation::create([
-        'id' => (string) \Illuminate\Support\Str::uuid7(),
+        'id' => (string) Str::uuid7(),
         'user_id' => $owner->id,
         'title' => 'Privée',
     ]);
@@ -97,8 +99,8 @@ test('sending a message queues the chatbot on the private channel', function () 
     ]);
 
     Queue::assertPushed(
-        BroadcastAgent::class,
-        fn (BroadcastAgent $job) => $job->prompt === 'Salut Marxtinus !'
+        BroadcastChatMessage::class,
+        fn (BroadcastChatMessage $job) => $job->prompt === 'Salut Marxtinus !'
             && 'private-user.'.$user->id === $job->channels[0]->name,
     );
 });
@@ -109,7 +111,7 @@ test('sending a message continues an existing conversation', function () {
     $user = User::factory()->create();
 
     $conversation = Conversation::create([
-        'id' => (string) \Illuminate\Support\Str::uuid7(),
+        'id' => (string) Str::uuid7(),
         'user_id' => $user->id,
         'title' => 'Ma conversation',
     ]);
@@ -126,8 +128,8 @@ test('sending a message continues an existing conversation', function () {
     $this->assertDatabaseHas('agent_conversations', ['id' => $conversation->id]);
 
     Queue::assertPushed(
-        BroadcastAgent::class,
-        fn (BroadcastAgent $job) => $job->prompt === 'Encore un message'
+        BroadcastChatMessage::class,
+        fn (BroadcastChatMessage $job) => $job->prompt === 'Encore un message'
             && 'private-user.'.$user->id === $job->channels[0]->name,
     );
 });
@@ -136,7 +138,7 @@ test('sending a message with a fresh conversation id creates the conversation', 
     Queue::fake();
 
     $user = User::factory()->create();
-    $freshConversationId = (string) \Illuminate\Support\Str::uuid();
+    $freshConversationId = (string) Str::uuid();
 
     $this
         ->actingAs($user)
@@ -153,8 +155,8 @@ test('sending a message with a fresh conversation id creates the conversation', 
     ]);
 
     Queue::assertPushed(
-        BroadcastAgent::class,
-        fn (BroadcastAgent $job) => $job->prompt === 'Première question !'
+        BroadcastChatMessage::class,
+        fn (BroadcastChatMessage $job) => $job->prompt === 'Première question !'
             && 'private-user.'.$user->id === $job->channels[0]->name,
     );
 });
@@ -166,7 +168,7 @@ test('a user cannot send a message to another user conversation', function () {
     $other = User::factory()->create();
 
     $conversation = Conversation::create([
-        'id' => (string) \Illuminate\Support\Str::uuid7(),
+        'id' => (string) Str::uuid7(),
         'user_id' => $owner->id,
         'title' => 'Privée',
     ]);

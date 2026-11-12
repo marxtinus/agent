@@ -47,6 +47,7 @@ const activeConversationId = ref<string | null>(props.activeConversationId);
 const streaming = ref(false);
 const toolRunning = ref(false);
 const streamError = ref<string | null>(null);
+const diagnosisNotice = ref<string | null>(null);
 const sidebarOpen = ref(false);
 
 const messagesContainer = ref<HTMLElement | null>(null);
@@ -88,6 +89,7 @@ if (typeof window !== 'undefined') {
             '.tool_result',
             '.stream_end',
             '.stream_failed',
+            '.stream_diagnosing',
             '.error',
         ],
         (payload) => {
@@ -95,7 +97,14 @@ if (typeof window !== 'undefined') {
                 case 'stream_start':
                     armStreamWatchdog();
                     break;
+                case 'stream_diagnosing':
+                    diagnosisNotice.value =
+                        payload.message ??
+                        "Je vérifie pourquoi je n'ai pas pu répondre…";
+                    armStreamWatchdog();
+                    break;
                 case 'text_delta':
+                    diagnosisNotice.value = null;
                     appendDelta(payload.delta ?? '');
                     armStreamWatchdog();
                     break;
@@ -143,6 +152,7 @@ function appendDelta(delta: string): void {
 
 function finalizeStream(): void {
     disarmStreamWatchdog();
+    diagnosisNotice.value = null;
 
     const last = messages.value[messages.value.length - 1];
 
@@ -163,6 +173,7 @@ function finalizeStream(): void {
 
 function failStream(message: string): void {
     disarmStreamWatchdog();
+    diagnosisNotice.value = null;
 
     const last = messages.value[messages.value.length - 1];
 
@@ -186,6 +197,7 @@ function send(): void {
     activeConversationId.value = conversationId;
     form.conversation_id = conversationId;
     streamError.value = null;
+    diagnosisNotice.value = null;
 
     messages.value.push({
         id: crypto.randomUUID(),
@@ -243,6 +255,7 @@ function newConversation(): void {
     form.conversation_id = null;
     messages.value = [];
     streamError.value = null;
+    diagnosisNotice.value = null;
 }
 
 function handleKeydown(event: KeyboardEvent): void {
@@ -533,7 +546,18 @@ function formatRelative(date: string): string {
                             </template>
                             <template v-else>
                                 <div
-                                    v-if="toolRunning"
+                                    v-if="
+                                        message.status === 'streaming' &&
+                                        !message.content &&
+                                        diagnosisNotice
+                                    "
+                                    class="flex items-center gap-2 text-zinc-500 dark:text-zinc-400"
+                                >
+                                    <Bot class="size-3.5 animate-pulse" />
+                                    {{ diagnosisNotice }}
+                                </div>
+                                <div
+                                    v-else-if="toolRunning"
                                     class="flex items-center gap-2 text-zinc-500 dark:text-zinc-400"
                                 >
                                     <Search class="size-3.5 animate-pulse" />
@@ -548,7 +572,8 @@ function formatRelative(date: string): string {
                                     v-if="
                                         message.status === 'streaming' &&
                                         !message.content &&
-                                        !toolRunning
+                                        !toolRunning &&
+                                        !diagnosisNotice
                                     "
                                     class="inline-flex items-center gap-1"
                                 >

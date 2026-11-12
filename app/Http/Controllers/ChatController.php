@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Ai\Agents\ChatBot;
+use App\Jobs\BroadcastChatMessage;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -63,9 +64,13 @@ class ChatController extends Controller
             ]);
         }
 
-        (new ChatBot)
-            ->continue($conversation->id, $user)
-            ->broadcastOnQueue($data['message'], [new PrivateChannel('user.'.$user->id)]);
+        BroadcastChatMessage::dispatch(
+            (new ChatBot)->continue($conversation->id, $user),
+            $data['message'],
+            [new PrivateChannel('user.'.$user->id)],
+            $conversation->id,
+            $user->id,
+        );
 
         return back();
     }
