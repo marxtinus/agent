@@ -76,13 +76,24 @@ test('it does not send ollama options to other providers', function () {
 });
 
 test('it reads the step and output limits from the configuration', function () {
-    config()->set('ai.providers.ollama.context.max_steps', 4);
-    config()->set('ai.providers.ollama.context.max_output_tokens', 900);
+    config()->set('ai.providers.ollama.context.max_steps', 3);
+    config()->set('ai.providers.ollama.context.max_output_tokens', 2500);
 
     $bot = new ChatBot;
 
-    expect($bot->maxSteps())->toBe(4)
-        ->and($bot->maxTokens())->toBe(900);
+    expect($bot->maxSteps())->toBe(3)
+        ->and($bot->maxTokens())->toBe(2500);
+});
+
+test('it scales the history budget with the context window', function () {
+    configureChatBotContext(['window' => 8192]);
+    $smallBudget = (new ReflectionMethod(ChatBot::class, 'historyTokenBudget'))->invoke(new ChatBot);
+
+    configureChatBotContext(['window' => 16384]);
+    $largeBudget = (new ReflectionMethod(ChatBot::class, 'historyTokenBudget'))->invoke(new ChatBot);
+
+    expect($largeBudget - $smallBudget)->toBe(8192)
+        ->and($largeBudget)->toBeGreaterThan(0);
 });
 
 test('it drops the oldest turns to stay within the context budget', function () {

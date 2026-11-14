@@ -37,7 +37,7 @@ EOT;
      */
     public function maxTokens(): int
     {
-        return 400;
+        return 1500;
     }
 
     /**

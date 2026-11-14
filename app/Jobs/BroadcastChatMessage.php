@@ -446,7 +446,7 @@ PROMPT;
      */
     protected function maxSteps(): int
     {
-        return max(1, (int) config('ai.providers.ollama.context.max_steps', 5));
+        return max(1, (int) config('ai.providers.ollama.context.max_steps', 3));
     }
 
     /**
@@ -454,6 +454,6 @@ PROMPT;
      */
     protected function maxOutputTokens(): int
     {
-        return max(1, (int) config('ai.providers.ollama.context.max_output_tokens', 1200));
+        return max(1, (int) config('ai.providers.ollama.context.max_output_tokens', 2500));
     }
 }

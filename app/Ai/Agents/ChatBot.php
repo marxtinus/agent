@@ -89,7 +89,7 @@ EOT;
      */
     public function maxSteps(): int
     {
-        return max(1, (int) config('ai.providers.ollama.context.max_steps', 5));
+        return max(1, (int) config('ai.providers.ollama.context.max_steps', 3));
     }
 
     /**
@@ -97,7 +97,7 @@ EOT;
      */
     public function maxTokens(): int
     {
-        return max(1, (int) config('ai.providers.ollama.context.max_output_tokens', 1200));
+        return max(1, (int) config('ai.providers.ollama.context.max_output_tokens', 2500));
     }
 
     /**
